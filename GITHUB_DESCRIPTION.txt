@@ -1,0 +1,1 @@
+🎵 Shazam-like music identification API with deep learning. Upload audio → Get instant song match + recommendations. Built with FastAPI, TensorFlow CNN embeddings, and dual-database architecture (24-song ID + 1K-song discovery). Ready to deploy! 🚀

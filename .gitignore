@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+api.log
+/tmp/
+
+# Test outputs
+query_result.json
+test_output/
+
+# Documentation (keeping in docs/ folder)
+# Uncomment if you want to ignore docs too
+# docs/
+
+# Data files (include these in deployment)
+# songs.db
+# recommendations.db
+# track_classifier.keras
+# identified_songs.json
