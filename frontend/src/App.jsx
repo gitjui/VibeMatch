@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import FirstPage from './FirstPage.jsx';
 import SecondPage from './SecondPage.jsx';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function App() {
   const [page, setPage] = useState('first'); // 'first' or 'second'

@@ -25,6 +25,12 @@ ENV/
 node_modules/
 frontend/node_modules/
 
+# Environment variables
+.env
+.env.local
+frontend/.env
+frontend/.env.local
+
 # Logs
 *.log
 api.log

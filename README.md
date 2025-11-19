@@ -1,19 +1,28 @@
 # 🎵 Music Identification API
 
-Shazam-like song identification and recommendation system with REST API.
+Shazam-like song identification and recommendation system with REST API and React frontend.
 
 ## 🚀 Quick Start
+
+### Local Development
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
+cd frontend && npm install && cd ..
 
-# Start API server
-./start_api.sh
-
-# Or manually
-uvicorn api:app --reload --port 8000
+# Start both API and frontend
+./start_vibematch.sh
 ```
+
+**Access:**
+- 🎨 Frontend: http://localhost:3000
+- 📡 API: http://localhost:8000
+- 📚 API Docs: http://localhost:8000/docs
+
+### Deploy to Production
+
+See [DEPLOY.md](DEPLOY.md) for deployment instructions to Render, Railway, or other platforms.
 
 **API Documentation**: http://localhost:8000/docs
 
