@@ -8,3 +8,4 @@ librosa==0.10.2
 soundfile==0.12.1
 mutagen==1.47.0
 chromaprint-fpcalc==1.5.1
+requests==2.32.3

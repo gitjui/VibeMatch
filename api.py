@@ -28,6 +28,8 @@ from pathlib import Path
 import tempfile
 import shutil
 from datetime import datetime
+import requests
+import urllib.parse
 
 from dual_database_system import DualDatabaseSystem
 
@@ -70,6 +72,12 @@ class QueryRequest(BaseModel):
     duration: float = 5.0
 
 
+class URLIdentifyRequest(BaseModel):
+    url: str
+    start_time: float = 0.0
+    duration: float = 5.0
+
+
 class IdentifyResponse(BaseModel):
     success: bool
     query: Dict[str, Any]
@@ -108,7 +116,8 @@ async def root():
         "version": "1.0.0",
         "endpoints": {
             "POST /identify": "Upload audio file for identification",
-            "POST /identify-url": "Identify from file path",
+            "POST /identify-url": "Identify from local file path",
+            "POST /identify-from-url": "Identify from web URL (direct audio link)",
             "GET /songs": "List all songs",
             "GET /songs/{id}": "Get song details",
             "GET /recommendations/{id}": "Get recommendations",
@@ -573,6 +582,120 @@ async def identify_from_upload(
     except HTTPException:
         raise
     except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
+
+
+@app.post("/identify-from-url", response_model=IdentifyResponse)
+async def identify_from_web_url(request: URLIdentifyRequest):
+    """
+    Identify a song from a web URL (direct audio link)
+    
+    Supports:
+    - Direct MP3/audio file URLs
+    - Must be publicly accessible
+    
+    Example request:
+    {
+        "url": "https://example.com/song.mp3",
+        "start_time": 0.0,
+        "duration": 5.0
+    }
+    """
+    try:
+        # Validate URL
+        parsed_url = urllib.parse.urlparse(request.url)
+        if not parsed_url.scheme in ['http', 'https']:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid URL. Must be http or https"
+            )
+        
+        # Download audio file to temp location
+        try:
+            response = requests.get(request.url, timeout=30, stream=True)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to download from URL: {str(e)}"
+            )
+        
+        # Get file extension from URL or Content-Type
+        file_ext = Path(parsed_url.path).suffix or '.mp3'
+        if not file_ext.startswith('.'):
+            file_ext = '.' + file_ext
+        
+        # Save to temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                tmp_file.write(chunk)
+            tmp_path = tmp_file.name
+        
+        try:
+            # Query using the temp file
+            sys = get_system()
+            results = sys.query(tmp_path, request.start_time, request.duration)
+            
+            # Format response (same structure as /identify)
+            output = {
+                "success": True,
+                "query": {
+                    "url": request.url,
+                    "start_time": request.start_time,
+                    "duration": request.duration
+                },
+                "exact_match": None,
+                "recommendations": [],
+                "summary": {}
+            }
+            
+            # Add exact match
+            if results['exact_match']:
+                match = results['exact_match']
+                output['exact_match'] = {
+                    "found": True,
+                    "song_id": int(match.song_id),
+                    "title": match.title,
+                    "artist": match.artist,
+                    "confidence": float(round(match.confidence, 3)),
+                    "distance": float(round(match.distance, 3)),
+                    "match_type": match.match_type
+                }
+            else:
+                output['exact_match'] = {
+                    "found": False,
+                    "message": "No exact match found"
+                }
+            
+            # Add recommendations
+            for i, rec in enumerate(results['similar_songs'], 1):
+                output['recommendations'].append({
+                    "rank": i,
+                    "song_id": str(rec.song_id),
+                    "title": rec.title,
+                    "artist": rec.artist,
+                    "genre": rec.metadata.get('genre'),
+                    "year": rec.metadata.get('year'),
+                    "similarity": float(round(rec.similarity, 3)),
+                    "type": "embedding_based"
+                })
+            
+            # Summary
+            output['summary'] = {
+                "total_recommendations": len(output['recommendations']),
+                "status": "match_found" if output['exact_match']['found'] else "no_match",
+                "recommendation_type": "with_match" if output['exact_match']['found'] else "discovery"
+            }
+            
+            return output
+        finally:
+            # Clean up temp file
+            Path(tmp_path).unlink(missing_ok=True)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"URL processing error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
 
 
