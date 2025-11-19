@@ -21,6 +21,10 @@ ENV/
 *.swo
 .DS_Store
 
+# Node modules
+node_modules/
+frontend/node_modules/
+
 # Logs
 *.log
 api.log
