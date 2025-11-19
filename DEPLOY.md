@@ -1,6 +1,12 @@
 # VibeMatch Deployment Guide
 
-## 🚀 Quick Deploy to Render
+## 🚀 Recommended: Render (Backend) + Vercel (Frontend)
+
+This is the easiest and most reliable approach.
+
+---
+
+## Step 1: Deploy Backend API to Render
 
 ### Prerequisites
 - GitHub account
@@ -8,31 +14,74 @@
 
 ### Steps
 
-1. **Push your code to GitHub** (already done ✅)
-
-2. **Go to Render Dashboard**
+1. **Go to Render Dashboard**
    - Visit https://dashboard.render.com
-   - Click "New +" → "Blueprint"
+   - Sign up/Login with GitHub
 
-3. **Connect Repository**
-   - Connect your GitHub account
-   - Select repository: `gitjui/VibeMatch`
-   - Render will detect `render.yaml` and set up both services
+2. **Create Web Service**
+   - Click "New +" → "Web Service"
+   - Click "Connect a repository"
+   - Select: `gitjui/VibeMatch`
 
-4. **Deploy**
-   - Click "Apply"
-   - Wait for both services to build (5-10 minutes)
-   - You'll get two URLs:
-     - API: `https://vibematch-api.onrender.com`
-     - Frontend: `https://vibematch-frontend.onrender.com`
+3. **Configure Service**
+   - **Name**: `vibematch-api`
+   - **Region**: Choose closest to you
+   - **Branch**: `main`
+   - **Root Directory**: Leave blank
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn api:app --host 0.0.0.0 --port $PORT`
+   - **Plan**: Free
 
-5. **Done!** 🎉
-   - Visit your frontend URL to use the app
-   - Share it with anyone!
+4. **Advanced Settings** (scroll down)
+   - Add environment variable:
+     - Key: `PYTHON_VERSION`
+     - Value: `3.11.0`
+
+5. **Create Web Service**
+   - Click "Create Web Service"
+   - Wait 5-10 minutes for build
+   - Note your API URL: `https://vibematch-api.onrender.com`
 
 ---
 
-## Alternative: Manual Deployment
+## Step 2: Deploy Frontend to Vercel
+
+### Prerequisites
+- Vercel account (free): https://vercel.com
+
+### Steps
+
+1. **Go to Vercel Dashboard**
+   - Visit https://vercel.com/new
+   - Sign up/Login with GitHub
+
+2. **Import Repository**
+   - Click "Import Project"
+   - Select: `gitjui/VibeMatch`
+   - Click "Import"
+
+3. **Configure Project**
+   - **Project Name**: `vibematch`
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+
+4. **Environment Variables**
+   - Click "Environment Variables"
+   - Add variable:
+     - Name: `VITE_API_URL`
+     - Value: `https://vibematch-api.onrender.com` (your Render API URL)
+
+5. **Deploy**
+   - Click "Deploy"
+   - Wait 2-3 minutes
+   - Your app is live: `https://vibematch.vercel.app`
+
+---
+
+## Alternative: Render Only (Both Services)
 
 ### Deploy Backend (API)
 

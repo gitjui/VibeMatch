@@ -8,22 +8,5 @@ services:
     startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
-        value: 3.13.3
+        value: 3.11.0
     healthCheckPath: /health
-
-  # Frontend
-  - type: web
-    name: vibematch-frontend
-    runtime: node
-    plan: free
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm run preview
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: vibematch-api
-          envVarKey: RENDER_EXTERNAL_URL
